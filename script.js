@@ -10,14 +10,6 @@ const resetButton = document.getElementById('reset');
 const workButton = document.getElementById('work');
 const breakButton = document.getElementById('break');
 const nightModeButton = document.getElementById('night-mode');
-const dragonButton = document.getElementById('dragon');
-const dragonContainer = document.getElementById('dragon-container');
-const fire = document.querySelector('.fire');
-let isDragonActive = false;
-
-console.log('Dragon button:', dragonButton);
-console.log('Dragon container:', dragonContainer);
-console.log('Fire element:', fire);
 
 function playSound(soundId) {
     const sound = document.getElementById(soundId);
@@ -33,6 +25,7 @@ function updateDisplay() {
 }
 
 function startTimer() {
+    playSound('start-sound');
     if (timerId === null) {
         timerId = setInterval(() => {
             timeLeft--;
@@ -50,51 +43,30 @@ function startTimer() {
         timerId = null;
         startButton.textContent = 'Start';
     }
-    playSound('start-sound');
 }
 
 function resetTimer() {
+    playSound('reset-sound');
     clearInterval(timerId);
     timerId = null;
     timeLeft = isWorkMode ? 25 * 60 : 5 * 60;
     updateDisplay();
     startButton.textContent = 'Start';
-    playSound('reset-sound');
 }
 
 function switchMode(mode) {
+    playSound('mode-switch-sound');
     isWorkMode = mode === 'work';
     workButton.classList.toggle('active', isWorkMode);
     breakButton.classList.toggle('active', !isWorkMode);
     resetTimer();
-    playSound('mode-switch-sound');
 }
 
 function toggleNightMode() {
+    playSound('mode-switch-sound');
     isNightMode = !isNightMode;
     document.body.classList.toggle('night-mode', isNightMode);
     nightModeButton.textContent = isNightMode ? 'Light Mode' : 'Night Mode';
-    playSound('mode-switch-sound');
-}
-
-function toggleDragon() {
-    console.log('Dragon toggled, isDragonActive:', isDragonActive);
-    isDragonActive = !isDragonActive;
-    dragonContainer.classList.toggle('hidden');
-    
-    if (isDragonActive) {
-        setTimeout(() => {
-            dragonContainer.classList.add('active');
-            fire.classList.add('active');
-            playSound('dragon-sound');
-        }, 100);
-    } else {
-        dragonContainer.classList.remove('active');
-        fire.classList.remove('active');
-        setTimeout(() => {
-            dragonContainer.classList.add('hidden');
-        }, 1000);
-    }
 }
 
 // Initialize
@@ -106,5 +78,4 @@ startButton.addEventListener('click', startTimer);
 resetButton.addEventListener('click', resetTimer);
 workButton.addEventListener('click', () => switchMode('work'));
 breakButton.addEventListener('click', () => switchMode('break'));
-nightModeButton.addEventListener('click', toggleNightMode);
-dragonButton.addEventListener('click', toggleDragon); 
+nightModeButton.addEventListener('click', toggleNightMode); 
