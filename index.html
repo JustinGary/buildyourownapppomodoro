@@ -3,26 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro Timer</title>
+    <title>Focus Block Timer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>Pomodoro Timer</h1>
+        <h1>Focus Block Timer</h1>
         <div class="task-section">
             <h2>Top 3 Tasks</h2>
             <div class="task-input">
                 <div class="task-row">
                     <input type="checkbox" id="check1" class="task-check">
                     <input type="text" id="task1" placeholder="Priority Task 1">
+                    <button class="delete-task" aria-label="Delete task 1">×</button>
                 </div>
                 <div class="task-row">
                     <input type="checkbox" id="check2" class="task-check">
                     <input type="text" id="task2" placeholder="Priority Task 2">
+                    <button class="delete-task" aria-label="Delete task 2">×</button>
                 </div>
                 <div class="task-row">
                     <input type="checkbox" id="check3" class="task-check">
                     <input type="text" id="task3" placeholder="Priority Task 3">
+                    <button class="delete-task" aria-label="Delete task 3">×</button>
                 </div>
             </div>
             <div id="current-task" class="hidden">
@@ -63,10 +66,10 @@
             </div>
         </div>
     </div>
-    <audio id="start-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
-    <audio id="reset-sound" src="https://assets.mixkit.co/active_storage/sfx/1115/1115-preview.mp3"></audio>
-    <audio id="mode-switch-sound" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-    <audio id="completion-sound" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+    <audio id="start-sound" src="https://assets.mixkit.co/active_storage/sfx/1114/1114-preview.mp3"></audio>
+    <audio id="reset-sound" src="https://assets.mixkit.co/active_storage/sfx/1113/1113-preview.mp3"></audio>
+    <audio id="mode-switch-sound" src="https://assets.mixkit.co/active_storage/sfx/1115/1115-preview.mp3"></audio>
+    <audio id="completion-sound" src="https://assets.mixkit.co/active_storage/sfx/1420/1420-preview.mp3"></audio>
     <script src="script.js"></script>
 </body>
 </html> 

@@ -29,6 +29,7 @@ const minutesUp = document.getElementById('minutes-up');
 const minutesDown = document.getElementById('minutes-down');
 const secondsUp = document.getElementById('seconds-up');
 const secondsDown = document.getElementById('seconds-down');
+const deleteButtons = document.querySelectorAll('.delete-task');
 
 function playSound(soundId) {
     const sound = document.getElementById(soundId);
@@ -47,7 +48,7 @@ function updateDisplay() {
     
     // Update page title with timer and mode
     const mode = isWorkMode ? 'Work' : 'Break';
-    document.title = `${timeString} - ${mode} - Pomodoro Timer`;
+    document.title = `${timeString} - ${mode} - Focus Block Timer`;
     
     updateTimeControls();
 }
@@ -239,4 +240,32 @@ minutesUp.addEventListener('click', () => adjustTime(60));
 minutesDown.addEventListener('click', () => adjustTime(-60));
 secondsUp.addEventListener('click', () => adjustTime(1));
 secondsDown.addEventListener('click', () => adjustTime(-1));
+
+// Add function to handle task deletion
+function deleteTask(index) {
+    const taskInput = document.getElementById(`task${index + 1}`);
+    const checkbox = document.getElementById(`check${index + 1}`);
+    
+    // Clear the task
+    taskInput.value = '';
+    checkbox.checked = false;
+    
+    // Play sound
+    playSound('reset-sound');
+    
+    // Update task styles and save
+    updateTaskStyles();
+    saveTasks();
+    
+    // If this was the current focus task, hide the current task display
+    if (currentTaskDiv.classList.contains('hidden') === false && 
+        activeTaskDisplay.textContent === taskInput.value) {
+        currentTaskDiv.classList.add('hidden');
+    }
+}
+
+// Add event listeners for delete buttons
+deleteButtons.forEach((button, index) => {
+    button.addEventListener('click', () => deleteTask(index));
+});
  

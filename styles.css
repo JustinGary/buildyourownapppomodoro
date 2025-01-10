@@ -267,4 +267,29 @@ body.night-mode .modal-content {
 
 .task-complete-animation {
     animation: taskComplete 1s ease-out;
+}
+
+.delete-task {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.delete-task:hover {
+    background-color: #ff4444;
+    color: white;
+}
+
+body.night-mode .delete-task {
+    color: #666;
+}
+
+body.night-mode .delete-task:hover {
+    background-color: #ff4444;
+    color: white;
 } 
