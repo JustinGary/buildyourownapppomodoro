@@ -2,6 +2,8 @@ let timeLeft;
 let timerId = null;
 let isWorkMode = true;
 let isNightMode = true;
+let sessionsToday = 0;
+let lastSessionDate = new Date().toDateString();
 
 const minutesDisplay = document.getElementById('minutes');
 const secondsDisplay = document.getElementById('seconds');
@@ -98,6 +100,12 @@ function switchMode(mode) {
     isWorkMode = mode === 'work';
     workButton.classList.toggle('active', isWorkMode);
     breakButton.classList.toggle('active', !isWorkMode);
+    
+    // Hide current task during break
+    if (!isWorkMode) {
+        currentTaskDiv.classList.add('hidden');
+    }
+    
     resetTimer();
 }
 
@@ -141,27 +149,31 @@ function updateTaskStyles() {
 }
 
 function showCompletionModal() {
-    const isWorkComplete = isWorkMode;
-    
-    modalTitle.textContent = isWorkComplete ? 
-        '🎉 Work Session Complete!' : 
-        '⏰ Break Time Over!';
-    
-    let message = '';
-    if (isWorkComplete) {
-        const completedTasks = checkboxes.filter(cb => cb.checked).length;
-        const totalTasks = checkboxes.filter((_, i) => task1Input.value.trim() || task2Input.value.trim() || task3Input.value.trim()).length;
-        message = `You've completed ${completedTasks} out of ${totalTasks} tasks.\n`;
-        message += 'Time for a well-deserved break!';
+    if (isWorkMode) {
+        sessionsToday++;
+        saveSessionsCount();
+        
+        modalTitle.textContent = '🎉 Work Session Complete!';
+        modalMessage.textContent = `Great job! You've completed ${sessionsToday} focus block${sessionsToday === 1 ? '' : 's'} today.`;
+        
+        // Check if there's an active task
+        const activeTask = activeTaskDisplay.textContent;
+        if (activeTask) {
+            modalMessage.textContent += '\n\nDid you complete your task?';
+            modalAction.textContent = 'Yes, Task Complete!';
+            modalClose.textContent = 'Not Yet';
+        } else {
+            modalAction.textContent = 'Start Break';
+            modalClose.textContent = 'Close';
+        }
     } else {
-        message = 'Ready to get back to work?';
+        modalTitle.textContent = '⏰ Break Time Over!';
+        modalMessage.textContent = 'Ready to get back to work?';
+        modalAction.textContent = 'Start Work';
+        modalClose.textContent = 'Close';
     }
     
-    modalMessage.textContent = message;
-    modalAction.textContent = isWorkComplete ? 'Start Break' : 'Start Work';
     completionModal.classList.remove('hidden');
-    
-    // Play completion sound
     playSound('completion-sound');
 }
 
@@ -226,12 +238,36 @@ loadTasks();
 
 // Add modal button event listeners
 modalAction.addEventListener('click', () => {
+    if (isWorkMode) {
+        const activeTask = activeTaskDisplay.textContent;
+        if (activeTask) {
+            // Find and complete the active task
+            const taskInputs = [task1Input, task2Input, task3Input];
+            const taskIndex = taskInputs.findIndex(input => input.value === activeTask);
+            if (taskIndex !== -1) {
+                checkboxes[taskIndex].checked = true;
+                updateTaskStyles();
+                saveTasks();
+                playSound('completion-sound'); // Play celebratory sound
+            }
+        }
+    }
+    
     switchMode(isWorkMode ? 'break' : 'work');
     completionModal.classList.add('hidden');
-    startTimer();
+    if (!isWorkMode) startTimer(); // Auto-start break timer
 });
 
 modalClose.addEventListener('click', () => {
+    if (isWorkMode) {
+        const activeTask = activeTaskDisplay.textContent;
+        if (activeTask) {
+            modalTitle.textContent = '💪 Keep Going!';
+            modalMessage.textContent = 'Great work on your focus block! Take a short break and come back refreshed to continue working on your task.';
+            modalAction.textContent = 'Start Break';
+            modalClose.textContent = 'Close';
+        }
+    }
     completionModal.classList.add('hidden');
 });
 
@@ -268,4 +304,24 @@ function deleteTask(index) {
 deleteButtons.forEach((button, index) => {
     button.addEventListener('click', () => deleteTask(index));
 });
+
+// Load sessions count from localStorage
+function loadSessionsCount() {
+    const savedDate = localStorage.getItem('lastSessionDate');
+    if (savedDate === new Date().toDateString()) {
+        sessionsToday = parseInt(localStorage.getItem('sessionsToday')) || 0;
+    } else {
+        sessionsToday = 0;
+    }
+    lastSessionDate = new Date().toDateString();
+}
+
+// Save sessions count to localStorage
+function saveSessionsCount() {
+    localStorage.setItem('sessionsToday', sessionsToday);
+    localStorage.setItem('lastSessionDate', lastSessionDate);
+}
+
+// Add this to your initialization code
+loadSessionsCount();
  

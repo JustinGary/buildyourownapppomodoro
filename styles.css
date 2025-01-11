@@ -144,10 +144,24 @@ body.night-mode .controls button#night-mode {
 
 #current-task {
     background-color: #e8f5e9;
-    padding: 1rem;
-    border-radius: 4px;
-    border-left: 4px solid #4CAF50;
-    margin-top: 1rem;
+    padding: 2rem;
+    border-radius: 8px;
+    border-left: 6px solid #4CAF50;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+#current-task h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #2e7d32;
+}
+
+#active-task {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin: 0;
+    line-height: 1.3;
 }
 
 #current-task.hidden {
@@ -168,6 +182,10 @@ body.night-mode #current-task {
     background-color: #1b5e20;
     border-left-color: #4CAF50;
     color: white;
+}
+
+body.night-mode #current-task h3 {
+    color: #81c784;
 }
 
 .task-row {
