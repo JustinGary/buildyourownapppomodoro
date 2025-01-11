@@ -58,13 +58,20 @@ function updateDisplay() {
 function startTimer() {
     playSound('start-sound');
     if (timerId === null) {
-        // Show first uncompleted task
-        const firstUncompletedTask = [task1Input, task2Input, task3Input].find((input, index) => 
-            !checkboxes[index].checked && input.value.trim()
-        );
-        
-        if (firstUncompletedTask) {
-            activeTaskDisplay.textContent = firstUncompletedTask.value;
+        // Only show task during work mode
+        if (isWorkMode) {
+            const firstUncompletedTask = [task1Input, task2Input, task3Input].find((input, index) => 
+                !checkboxes[index].checked && input.value.trim()
+            );
+            
+            if (firstUncompletedTask) {
+                activeTaskDisplay.textContent = firstUncompletedTask.value;
+                currentTaskDiv.classList.remove('hidden');
+            }
+        } else {
+            // Show break time message
+            activeTaskDisplay.textContent = "Break Time! 🎉";
+            currentTaskDiv.querySelector('h3').textContent = "Current Mode:";
             currentTaskDiv.classList.remove('hidden');
         }
         
@@ -101,9 +108,14 @@ function switchMode(mode) {
     workButton.classList.toggle('active', isWorkMode);
     breakButton.classList.toggle('active', !isWorkMode);
     
-    // Hide current task during break
+    // Update display for break mode
     if (!isWorkMode) {
+        currentTaskDiv.classList.remove('hidden');
+        activeTaskDisplay.textContent = "Break Time! 🎉";
+        currentTaskDiv.querySelector('h3').textContent = "Current Mode:";
+    } else {
         currentTaskDiv.classList.add('hidden');
+        currentTaskDiv.querySelector('h3').textContent = "Current Focus:";
     }
     
     resetTimer();
@@ -118,9 +130,21 @@ function toggleNightMode() {
 
 function saveTasks() {
     const tasks = {
-        task1: { text: task1Input.value, completed: checkboxes[0].checked },
-        task2: { text: task2Input.value, completed: checkboxes[1].checked },
-        task3: { text: task3Input.value, completed: checkboxes[2].checked }
+        task1: { 
+            text: task1Input.value, 
+            completed: checkboxes[0].checked,
+            sessions: task1Input.dataset.sessions || 0
+        },
+        task2: { 
+            text: task2Input.value, 
+            completed: checkboxes[1].checked,
+            sessions: task2Input.dataset.sessions || 0
+        },
+        task3: { 
+            text: task3Input.value, 
+            completed: checkboxes[2].checked,
+            sessions: task3Input.dataset.sessions || 0
+        }
     };
     localStorage.setItem('pomodoroTasks', JSON.stringify(tasks));
 }
@@ -129,15 +153,29 @@ function loadTasks() {
     const savedTasks = localStorage.getItem('pomodoroTasks');
     if (savedTasks) {
         const tasks = JSON.parse(savedTasks);
-        task1Input.value = tasks.task1?.text || '';
-        task2Input.value = tasks.task2?.text || '';
-        task3Input.value = tasks.task3?.text || '';
         
-        checkboxes[0].checked = tasks.task1?.completed || false;
-        checkboxes[1].checked = tasks.task2?.completed || false;
-        checkboxes[2].checked = tasks.task3?.completed || false;
+        [task1Input, task2Input, task3Input].forEach((input, index) => {
+            const taskNum = index + 1;
+            const task = tasks[`task${taskNum}`];
+            input.value = task?.text || '';
+            input.dataset.sessions = task?.sessions || 0;
+            checkboxes[index].checked = task?.completed || false;
+        });
         
         updateTaskStyles();
+        initializeTaskDisplays();
+    }
+}
+
+function updateTaskDisplay(input, index) {
+    const sessions = parseInt(input.dataset.sessions) || 0;
+    const sessionText = sessions > 0 ? ` (${sessions} blocks)` : '';
+    const taskRow = input.parentElement;
+    const sessionCount = taskRow.querySelector('.session-count') || document.createElement('span');
+    sessionCount.className = 'session-count';
+    sessionCount.textContent = sessionText;
+    if (!taskRow.querySelector('.session-count')) {
+        taskRow.appendChild(sessionCount);
     }
 }
 
@@ -241,31 +279,55 @@ modalAction.addEventListener('click', () => {
     if (isWorkMode) {
         const activeTask = activeTaskDisplay.textContent;
         if (activeTask) {
-            // Find and complete the active task
+            // Find the active task
             const taskInputs = [task1Input, task2Input, task3Input];
             const taskIndex = taskInputs.findIndex(input => input.value === activeTask);
             if (taskIndex !== -1) {
-                checkboxes[taskIndex].checked = true;
-                updateTaskStyles();
+                const input = taskInputs[taskIndex];
+                // Always increment sessions when work session completes
+                input.dataset.sessions = parseInt(input.dataset.sessions || 0) + 1;
+                updateTaskDisplay(input, taskIndex);
+                
+                // Only mark as complete if "Yes, Task Complete!" was clicked
+                if (modalAction.textContent === 'Yes, Task Complete!') {
+                    checkboxes[taskIndex].checked = true;
+                    updateTaskStyles();
+                }
                 saveTasks();
-                playSound('completion-sound'); // Play celebratory sound
+                playSound('completion-sound');
             }
         }
     }
     
     switchMode(isWorkMode ? 'break' : 'work');
     completionModal.classList.add('hidden');
-    if (!isWorkMode) startTimer(); // Auto-start break timer
+    if (!isWorkMode) startTimer();
 });
 
 modalClose.addEventListener('click', () => {
     if (isWorkMode) {
         const activeTask = activeTaskDisplay.textContent;
         if (activeTask) {
+            // Find and increment the active task's session count
+            const taskInputs = [task1Input, task2Input, task3Input];
+            const taskIndex = taskInputs.findIndex(input => input.value === activeTask);
+            if (taskIndex !== -1) {
+                const input = taskInputs[taskIndex];
+                input.dataset.sessions = parseInt(input.dataset.sessions || 0) + 1;
+                updateTaskDisplay(input, taskIndex);
+                saveTasks();
+            }
+            
+            // Show encouragement message
             modalTitle.textContent = '💪 Keep Going!';
             modalMessage.textContent = 'Great work on your focus block! Take a short break and come back refreshed to continue working on your task.';
             modalAction.textContent = 'Start Break';
             modalClose.textContent = 'Close';
+            
+            // Don't hide the modal yet if showing encouragement
+            if (modalClose.textContent === 'Not Yet') {
+                return;
+            }
         }
     }
     completionModal.classList.add('hidden');
@@ -324,4 +386,14 @@ function saveSessionsCount() {
 
 // Add this to your initialization code
 loadSessionsCount();
+
+// Add this function to initialize all task displays
+function initializeTaskDisplays() {
+    [task1Input, task2Input, task3Input].forEach((input, index) => {
+        updateTaskDisplay(input, index);
+    });
+}
+
+// Add this to your initialization code at the bottom
+initializeTaskDisplays();
  
